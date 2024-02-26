@@ -1,0 +1,38 @@
+version: '4.27.2'
+
+services:
+  api:
+    build:
+      context: ./docker/api
+      dockerfile: ./docker/api/Dockerfile
+    container_name: ${PROJECT_NAME}-api
+    restart: unless-stopped
+    volumes:
+      - ./api:${API_DIRECTORY}
+    networks:
+      phpdockertest:
+        ipv4_address: ${API_IPV4}
+
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: ./docker/nginx/Dockerfile
+    container_name: ${PROJECT_NAME}-nginx
+    restart: unless-stopped
+    volumes:
+      - ./api:${API_DIRECTORY}
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - api
+    ports:
+      - 8000:80
+      - 443:443
+      - 8443:8443
+    environment:
+      API_DIRECTORY: ${API_DIRECTORY}
+      NODE_ENV: dev
+      NGINX_HOST: ${NGINX_HOST_LOCAL}
+      NGINX_PORT: ${NGINX_PORT_LOCAL}
+    networks:
+      phpdockertest:
+        ipv4_address: ${NGINX_IPV4}
