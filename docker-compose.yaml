@@ -4,7 +4,7 @@ services:
   api:
     build:
       context: ./docker/api
-      dockerfile: ./docker/api/Dockerfile
+      dockerfile: Dockerfile
     container_name: ${PROJECT_NAME}-api
     restart: unless-stopped
     volumes:
@@ -16,23 +16,32 @@ services:
   nginx:
     build:
       context: ./docker/nginx
-      dockerfile: ./docker/nginx/Dockerfile
+      dockerfile: Dockerfile
     container_name: ${PROJECT_NAME}-nginx
     restart: unless-stopped
     volumes:
       - ./api:${API_DIRECTORY}
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./docker/certs/local:/etc/nginx/certs
     depends_on:
       - api
     ports:
-      - 8000:80
+      - 80:80
       - 443:443
       - 8443:8443
     environment:
       API_DIRECTORY: ${API_DIRECTORY}
-      NODE_ENV: dev
       NGINX_HOST: ${NGINX_HOST_LOCAL}
       NGINX_PORT: ${NGINX_PORT_LOCAL}
+      NGINX_CERT_CRT: ${NGINX_CERT_CRT_LOCAL}
+      NGINX_CERT_KEY: ${NGINX_CERT_KEY_LOCAL}
     networks:
       phpdockertest:
         ipv4_address: ${NGINX_IPV4}
+
+networks:
+  phpdockertest:
+    driver: "bridge"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.22.0.0/16
